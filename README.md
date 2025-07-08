@@ -25,8 +25,8 @@ Aplikasi Streamlit untuk mengidentifikasi komentar judi online menggunakan model
 1. **Clone repository**
 
 ```bash
-git clone <repository-url>
-cd streamlit_v4
+git clone https://github.com/fhru/komentarbersih-dashboard.git
+cd komentarbersih-dashboard
 ```
 
 2. **Install dependencies**
@@ -35,7 +35,7 @@ cd streamlit_v4
 pip install -r requirements.txt
 ```
 
-3. **(Opsional) Setup .env untuk API Key**
+3. **Setup .env untuk API Key**
 
 Buat file `.env` di root folder:
 
