@@ -432,7 +432,7 @@ def youtube_input_page():
                         status_text.text("✅ Cleaning selesai!")
                         
                         # Progress bar untuk prediction
-                        status_text.text("🤖 Melakukan prediksi...")
+                        status_text.text("Melakukan prediksi...")
                         progress_bar.progress(0)
                         
                         # Prediction dengan batch processing
@@ -450,12 +450,10 @@ def youtube_input_page():
                         for i, result_pred in enumerate(results):
                             if result_pred['confidence'] >= threshold:
                                 filtered_results.append({
-                                    'index': i,
-                                    'original_text': comment_texts[i],
-                                    'cleaned_text': cleaned_comments[i],
+                                    'comment': comment_texts[i],
                                     'label': result_pred['label'],
-                                    'confidence': result_pred['confidence'],
-                                    'prediction': result_pred['prediction']
+                                    'prediction': result_pred['prediction'],
+                                    'confidence': result_pred['confidence']
                                 })
                         
                         # Statistics
@@ -490,12 +488,12 @@ def youtube_input_page():
                         
                         # Results table
                         if filtered_results:
-                            st.subheader("📋 Hasil Analisis (Filtered)")
+                            st.subheader("📋 Hasil Analisis")
                             results_df = pd.DataFrame(filtered_results)
                             st.dataframe(results_df)
                             
                             # Debug info
-                            with st.expander("🔍 Debug Info (Semua Komentar)"):
+                            with st.expander("Debug Info (Semua Komentar)"):
                                 debug_df = pd.DataFrame({
                                     'Original Text': comment_texts,
                                     'Cleaned Text': cleaned_comments,
@@ -517,7 +515,7 @@ def youtube_input_page():
                             st.warning("⚠️ Tidak ada komentar yang memenuhi threshold!")
                             
                             # Debug info jika tidak ada hasil
-                            with st.expander("🔍 Debug Info (Semua Komentar)"):
+                            with st.expander("Debug Info (Semua Komentar)"):
                                 debug_df = pd.DataFrame({
                                     'Original Text': comment_texts,
                                     'Cleaned Text': cleaned_comments,
