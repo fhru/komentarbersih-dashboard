@@ -238,6 +238,7 @@ def csv_input_page():
             
             # Analysis settings
             max_comments = st.slider(
+                "Jumlah komentar yang akan dianalisis:",
                 min_value=1,
                 max_value=len(df),
                 value=min(100, len(df))
