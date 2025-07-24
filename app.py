@@ -29,6 +29,10 @@ st.set_page_config(
     layout="wide"
 )
 
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+
 @st.cache_resource
 def init_model():
     """
@@ -208,7 +212,7 @@ def csv_input_page():
     if uploaded_file is not None:
         try:
             # Read CSV
-            df = pd.read_csv(uploaded_file)
+            df = pd.read_csv(uploaded_file, dtype=str)
             st.success(f"✅ File berhasil diupload! ({len(df)} baris)")
             
             # Check column
@@ -225,13 +229,15 @@ def csv_input_page():
             
             st.info(f"📋 Menggunakan kolom: '{comment_column}'")
             
+            # Hanya ambil kolom yang diperlukan dan ubah ke string
+            comments = df[comment_column].astype(str).tolist()
+            
             # Preview data
             with st.expander("👀 Preview Data"):
                 st.dataframe(df.head())
             
             # Analysis settings
             max_comments = st.slider(
-                "Jumlah komentar yang dianalisis:",
                 min_value=1,
                 max_value=len(df),
                 value=min(100, len(df))
@@ -244,7 +250,7 @@ def csv_input_page():
                         logger.info(f"Memulai analisis CSV - {max_comments} komentar")
                         
                         # Get comments
-                        comments = df[comment_column].head(max_comments).tolist()
+                        comments = comments[:max_comments]
                         
                         # Progress bar untuk cleaning
                         progress_bar = st.progress(0)
@@ -280,8 +286,8 @@ def csv_input_page():
                         status_text.text("🤖 Melakukan prediksi...")
                         progress_bar.progress(0)
                         
-                        # Prediction dengan batch processing
-                        results = predict_batch(cleaned_comments)
+                        # Prediction dengan batch processing dan batch_size kecil
+                        results = predict_batch(cleaned_comments, batch_size=16)
                         
                         progress_bar.progress(1.0)
                         status_text.text("✅ Prediksi selesai!")
@@ -436,7 +442,7 @@ def youtube_input_page():
                         progress_bar.progress(0)
                         
                         # Prediction dengan batch processing
-                        results = predict_batch(cleaned_comments)
+                        results = predict_batch(cleaned_comments, batch_size=16)
                         
                         progress_bar.progress(1.0)
                         status_text.text("✅ Prediksi selesai!")

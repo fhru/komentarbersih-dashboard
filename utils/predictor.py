@@ -3,6 +3,10 @@ from transformers import TFAutoModelForSequenceClassification, AutoTokenizer, pi
 from typing import List, Dict, Union
 import time
 import numpy as np
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
 
 # Global variable untuk caching model
 _model = None
@@ -56,34 +60,36 @@ def predict_text(text: str) -> Dict[str, Union[str, float, int]]:
         print(f"Error saat prediksi: {e}")
         return {"label": "Komentar Normal", "confidence": 0.0, "prediction": 0}
 
-def predict_batch(texts: List[str]) -> List[Dict[str, Union[str, float, int]]]:
+def predict_batch(texts: List[str], batch_size: int = 16) -> List[Dict[str, Union[str, float, int]]]:
     """
-    Melakukan prediksi batch manual (tanpa pipeline).
+    Melakukan prediksi batch manual (tanpa pipeline) dengan batch kecil untuk menghemat memori.
     """
     if not _model_loaded:
         if not load_model():
             return [{"label": "Error", "confidence": 0.0, "prediction": -1}] * len(texts)
     if not texts:
         return []
+    results = []
     try:
-        # Tokenisasi batch
-        inputs = _tokenizer(texts, return_tensors="tf", truncation=True, padding=True, max_length=128)
-        outputs = _model(inputs)
-        logits = outputs.logits.numpy()
-        probs = np.exp(logits) / np.sum(np.exp(logits), axis=1, keepdims=True)
-        pred_ids = np.argmax(probs, axis=1)
-        confidences = np.max(probs, axis=1)
-        results = []
-        for i, text in enumerate(texts):
-            if not text or not text.strip():
-                results.append({"label": "Komentar Normal", "confidence": 0.0, "prediction": 0})
-            else:
-                label = "Komentar Judi" if pred_ids[i] == 1 else "Komentar Normal"
-                results.append({
-                    "label": label,
-                    "confidence": float(confidences[i]),
-                    "prediction": int(pred_ids[i])
-                })
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i+batch_size]
+            # Tokenisasi batch
+            inputs = _tokenizer(batch, return_tensors="tf", truncation=True, padding=True, max_length=128)
+            outputs = _model(inputs)
+            logits = outputs.logits.numpy()
+            probs = np.exp(logits) / np.sum(np.exp(logits), axis=1, keepdims=True)
+            pred_ids = np.argmax(probs, axis=1)
+            confidences = np.max(probs, axis=1)
+            for j, text in enumerate(batch):
+                if not text or not text.strip():
+                    results.append({"label": "Komentar Normal", "confidence": 0.0, "prediction": 0})
+                else:
+                    label = "Komentar Judi" if pred_ids[j] == 1 else "Komentar Normal"
+                    results.append({
+                        "label": label,
+                        "confidence": float(confidences[j]),
+                        "prediction": int(pred_ids[j])
+                    })
         return results
     except Exception as e:
         print(f"Error saat prediksi batch: {e}")
@@ -115,9 +121,9 @@ if __name__ == "__main__":
     # Test batch prediction
     print("\n=== Test Batch Prediction ===")
     test_texts = [
-        "Promo judi online terbaik!",
+        "main di dewa77 auto dikasih menang",
         "Hari ini cuaca bagus sekali",
-        "Slot gacor deposit pulsa",
+        "Slot gacor deposit pulsa langsung join link",
         "Makan siang enak sekali"
     ]
     

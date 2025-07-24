@@ -291,30 +291,12 @@ def preprocess_teks(text: str) -> str:
     
     return text.strip()
 
-def get_dictionary_info() -> Dict[str, str]:
-    """
-    Mendapatkan informasi dictionary.
-    
-    Returns:
-        Dict[str, str]: Informasi dictionary
-    """
-    return {
-        "dictionary_loaded": _dict_loaded,
-        "total_words": len(_slang_dict) if _slang_dict else 0,
-        "source": "Manual + Hugging Face Dataset"
-    }
-
 # Contoh penggunaan dan testing
 if __name__ == "__main__":
+    # Muat dictionary slang di awal
+    init_dictionary()
     # Test pipeline preprocessing
     teks_test = "gk tau nih 😂 p r o m o judol skrg lg gacor bgt!"
     print(f"Teks asli: {teks_test}")
     hasil = preprocess_teks(teks_test)
     print(f"Teks hasil: {hasil}")
-    
-    # Test dictionary info
-    print("\n=== Dictionary Info ===")
-    info = get_dictionary_info()
-    print(f"Dictionary Loaded: {info['dictionary_loaded']}")
-    print(f"Total Words: {info['total_words']}")
-    print(f"Source: {info['source']}")
